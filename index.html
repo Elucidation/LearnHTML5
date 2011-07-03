@@ -13,11 +13,16 @@
                 position: relative;
             }
             table {
-                position: absolute;
-                
+                position: relative;
+                left: 30%;
                 text-align: left;
+                vertical-align: top;
                 border: 1px;
                 border-style: solid;
+                padding: 10px;
+            }
+            td {
+                padding: 5px;
             }
         </style>
         <script type="text/javascript"> <!--
@@ -38,15 +43,30 @@
                 py = new Array();
                 
                 
-                cxt.strokeStyle = '#00f';
+                cxt.strokeStyle = '#00f'; // blue
                 cxt.lineWidth = "1";
             }
             
+            function clearUp() {
+                //canvasThing.width = canvasThing.width; // clears canvas // LIES THIS THING MAKES LIFE SAD
+                clearRect(0,0,canvasThing.width,canvasThing.height);
+                // Redraw Quadtree
+                rootQuadTree.drawTree();
+                // Redraw Points
+                for (i=0; i < px.length; i++) {
+                    drawPoint(px[i],py[i]);
+                }
+            }
+            
             function drawBox(x,y,w,h) {
+                cxt.strokeStyle = '#00f';
+                cxt.lineWidth = "1";
                 cxt.strokeRect(x,y,w,h);
             }
             
             function drawPoint(x,y) {
+                cxt.strokeStyle = '#a00';
+                cxt.lineWidth = "1";
                 cxt.beginPath();
                 cxt.arc(x,y,2,0,Math.PI*2,true);
                 cxt.closePath();
@@ -76,14 +96,74 @@
                 for (i=0; i < px.length; i++) {
                     stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
                 }
+                clearUp();
                 
             }   
             
+            ///// Pseudoclass Quadtree + functions
+            function Quadtree(x,y,x2,y2,depth,a,b,c,d) {
+                // abcd are the 4 children if a quadtree has any
+                this.x = x;
+                this.y = y;
+                this.x2 = x2;
+                this.y2 = y2;
+                this.depth = depth;
+                this.a = a;
+                this.b = b;
+                this.c = c;
+                this.d = d;
+                
+                return this;
+            }
+            
+            Quadtree.prototype.drawQuad = function () {
+                drawBox(this.x,this.y,
+                this.x2-this.x,
+                this.y2-this.y);
+            };
+            
+            Quadtree.prototype.drawTree = function() {
+                if (this.hasChildren()) {
+                    this.a.drawTree();
+                    this.b.drawTree();
+                    this.c.drawTree();
+                    this.d.drawTree();
+                } else {
+                    this.drawQuad();
+                }
+            };
+            
+            Quadtree.prototype.getQuadNumParticles = function() {
+                return getNumberOfParticlesInBox(this.x,this.y,this.x2,this.y2);
+            };
+            
+            Quadtree.prototype.hasChildren = function() {
+                return (this.a != undefined); // if has one child has 4
+            };
+            
+            Quadtree.prototype.getInfo = function() {
+                var strOut = "Quad D"+this.depth+" N: "+this.getQuadNumParticles()+"<br>";
+                if (this.hasChildren()) {
+                    strOut += "-----------".substr(0,this.depth+1)+"A"+this.a.getInfo();
+                    strOut += "-----------".substr(0,this.depth+1)+"B"+this.b.getInfo();
+                    strOut += "-----------".substr(0,this.depth+1)+"C"+this.c.getInfo();
+                    strOut += "-----------".substr(0,this.depth+1)+"D"+this.d.getInfo();
+                }
+                return strOut;
+            };
+            
+            /////
+            
+            var quadCount;
+            var rootQuadTree;
             function makeQuadtree() {
-                var maxDepth = 4; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+                var maxDepth = 5; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
                 var splitN = 2; // Number of particles to split a box on
-                quadStatus.innerHTML = "";
-                doQuad(0,0,canvasThing.width,canvasThing.height,splitN,0,maxDepth);
+                quadCount = 0;
+                rootQuadTree = new doQuad(0,0,canvasThing.width,canvasThing.height,splitN,0,maxDepth);
+                quadStatus.innerHTML = "Max Depth: "+maxDepth+", Split on N >= "+splitN+
+                    ", Number of Quads: " + quadCount + "<br>";
+                quadStatus.innerHTML += rootQuadTree.getInfo();
             }
             
             function doQuad(x,y,x2,y2,maxP,depth,maxDepth) {
@@ -91,22 +171,20 @@
                 // maxP is # of points on which to split box into 4 quadrants (hence quadtree)
                 // depth is current level of splits in (original box containing entire canvas is depth 0)
                 // maxDepth is the the point at which you don't create any boxes below you, regardless of points quantity
-                var n = getNumberOfParticlesInBox(x,y,x2,y2);
-                drawBox(x,y,x2-x,y2-y);
-                quadStatus.innerHTML += "Quad D"+depth+" [("+x+","+y+")("+x2+","+y2+")] N: "+n + "<br>";
-                
+                var me = new Quadtree(x,y,x2,y2,depth);
+                var n = me.getQuadNumParticles();
+                me.drawQuad();
+                quadCount++;
                 // Recursive element
                 if (n >= maxP && depth < maxDepth) {
                     var mx = x + (x2-x)/2;
                     var my = y + (y2-y)/2;
-                    quadStatus.innerHTML += "-D"+depth+"--<br>";
-                    doQuad(x,y,mx,my,maxP,depth+1,maxDepth); // Top Left
-                    doQuad(mx,y,x2,my,maxP,depth+1,maxDepth); // Top Right
-                    doQuad(x,my,mx,y2,maxP,depth+1,maxDepth); // Bottom Left
-                    doQuad(mx,my,x2,y2,maxP,depth+1,maxDepth); // Bottom Right
-                    quadStatus.innerHTML += "---<br>";
+                    me.a = new doQuad(x,y,mx,my,maxP,depth+1,maxDepth); // Top Left
+                    me.b = new doQuad(mx,y,x2,my,maxP,depth+1,maxDepth); // Top Right
+                    me.c = new doQuad(x,my,mx,y2,maxP,depth+1,maxDepth); // Bottom Left
+                    me.d = new doQuad(mx,my,x2,y2,maxP,depth+1,maxDepth); // Bottom Right
                 }
-                
+                return me;
             }
             
             function getNumberOfParticlesInBox(x,y,x2,y2) {
