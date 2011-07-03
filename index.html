@@ -14,7 +14,7 @@
             }
         </style>
         <script type="text/javascript"> <!--
-            var canvasContext;
+            var cxt;
             var stat;
             var px, py; // Points arrays
             function init() {
@@ -26,19 +26,20 @@
                 py = new Array();
                 
                 
-                canvasContext = c.getContext("2d");
-                canvasContext.strokeStyle = '#00f';
-                canvasContext.lineWidth = "2";
-            }
-            function drawSomeRect() {
-                canvasContext.fillRect(20,20,10,10);
-            }
-            function clearSomeRect() {
-                canvasContext.clearRect(20,20,30,30);
+                cxt = c.getContext("2d");
+                cxt.strokeStyle = '#00f';
+                cxt.lineWidth = "1";
             }
             
             function drawBox(x,y,w,h) {
-                canvasContext.strokeRect(x,y,w,h);
+                cxt.strokeRect(x,y,w,h);
+            }
+            
+            function drawPoint(x,y) {
+                cxt.beginPath();
+                cxt.arc(x,y,2,0,Math.PI*2,true);
+                cxt.closePath();
+                cxt.stroke();
             }
             
             function mouseClick(e)
@@ -53,11 +54,11 @@
                     mouseX = e.layerX;
                     mouseY = e.layerY;
                 }
-                drawBox(mouseX,mouseY,30,50);
+                drawPoint(mouseX,mouseY);
                 px [px.length] = mouseX;
                 py [py.length] = mouseY;
                 
-                stat.innerHTML = "Mouse Pos: "+mouseX +", " + mouseY + "<br>";
+                stat.innerHTML = "<b>Mouse Pos: "+mouseX +", " + mouseY + "</b><br>";
                 stat.innerHTML += "Number of Points: "+ px.length + "<br>";
                 for (i=0; i < px.length; i++) {
                     stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
@@ -72,8 +73,6 @@
             <canvas id="argh"
                     width="600" 
                     height="300" 
-                    onmouseover="drawSomeRect();"
-                    onmouseout="clearSomeRect();"
                     onclick="mouseClick(event);">
 
             </canvas>
@@ -81,8 +80,19 @@
         <div id="stat">aa</div>
         <script type="text/javascript"> <!--
             document.write("<p>" + Date() + "</p>");
-            document.write("<p>Script appears to be functioning</p>");
             --></script>
+
+        <script type="text/javascript">
+            if (localStorage.pagecount)
+            {
+                localStorage.pagecount = Number(localStorage.pagecount) + 1;
+            }
+            else
+            {
+                localStorage.pagecount = 1;
+            }
+            document.write("Visited "+ localStorage.pagecount + " time(s).");
+        </script>
 
     </body>
 </html>
