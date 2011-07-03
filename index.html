@@ -12,21 +12,32 @@
                 border: 1px solid;
                 position: relative;
             }
+            table {
+                position: absolute;
+                
+                text-align: left;
+                border: 1px;
+                border-style: solid;
+            }
         </style>
         <script type="text/javascript"> <!--
             var cxt;
-            var stat;
+            var canvasThing; 
+            var stat,quadStatus;
             var px, py; // Points arrays
             function init() {
-                var c = document.getElementById("argh");
+                // Canvas
+                canvasThing = document.getElementById("argh");
+                cxt = canvasThing.getContext("2d");
+                // Statistics
                 stat = document.getElementById("stat");
+                quadStatus = document.getElementById("oct");
                 
                 // Initialize points array
                 px = new Array();
                 py = new Array();
                 
                 
-                cxt = c.getContext("2d");
                 cxt.strokeStyle = '#00f';
                 cxt.lineWidth = "1";
             }
@@ -58,17 +69,62 @@
                 px [px.length] = mouseX;
                 py [py.length] = mouseY;
                 
-                stat.innerHTML = "<b>Mouse Pos: "+mouseX +", " + mouseY + "</b><br>";
-                stat.innerHTML += "Number of Points: "+ px.length + "<br>";
+                makeQuadtree();
+                
+                //stat.innerHTML = "<b>Mouse Pos: "+mouseX +", " + mouseY + "</b><br>";
+                stat.innerHTML = "Number of Points: "+ px.length + "<br>";
                 for (i=0; i < px.length; i++) {
                     stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
                 }
                 
-            }            
+            }   
+            
+            function makeQuadtree() {
+                var maxDepth = 4; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+                var splitN = 2; // Number of particles to split a box on
+                quadStatus.innerHTML = "";
+                doQuad(0,0,canvasThing.width,canvasThing.height,2,0,maxDepth);
+            }
+            
+            function doQuad(x,y,x2,y2,maxP,depth,maxDepth) {
+                //x,y,x2,y2 is boudning box
+                // maxP is # of points on which to split box into 4 quadrants (hence quadtree)
+                // depth is current level of splits in (original box containing entire canvas is depth 0)
+                // maxDepth is the the point at which you don't create any boxes below you, regardless of points quantity
+                var n = getNumberOfParticlesInBox(x,y,x2,y2);
+                drawBox(x,y,x2,y2);
+                quadStatus.innerHTML += "Quad D"+depth+" [("+x+","+y+")("+x2+","+y2+")] N: "+n + "<br>";
+                
+                // Recursive element
+                if (n >= maxP && depth < maxDepth) {
+                    var mx = x + (x2-x)/2;
+                    var my = y + (y2-y)/2;
+                    
+                    doQuad(x,y,mx,my,maxP,depth+1,maxDepth); // Top Left
+                    doQuad(mx,y,x2,my,maxP,depth+1,maxDepth); // Top Right
+                    doQuad(x,my,mx,y2,maxP,depth+1,maxDepth); // Bottom Left
+                    doQuad(mx,my,x2,y2,maxP,depth+1,maxDepth); // Bottom Right
+                }
+                
+            }
+            
+            function getNumberOfParticlesInBox(x,y,x2,y2) {
+                // x,y is top-left, x2,y2 is bottom right of a bounding box
+                // Counts number of points inside bounding box (from point arrays px,py)
+                // Includes points directly on top&left side edges
+                var sum = 0;
+                for (i=0; i<px.length; i++) {
+                    if (x <= px[i] && px[i] < x2 && y <= py[i] && py[i] < y2) {
+                        sum += 1;
+                    }
+                }
+                return sum;
+            }
             --></script>
     </head>
     <body onload="init();">
         <h1>So far so good.</h1>
+        <p>Click somewhere in the box!</p>
         <p>
             <canvas id="argh"
                     width="600" 
@@ -77,22 +133,32 @@
 
             </canvas>
         </p>
-        <div id="stat">aa</div>
-        <script type="text/javascript"> <!--
-            document.write("<p>" + Date() + "</p>");
-            --></script>
-
-        <script type="text/javascript">
-            if (localStorage.pagecount)
-            {
-                localStorage.pagecount = Number(localStorage.pagecount) + 1;
-            }
-            else
-            {
-                localStorage.pagecount = 1;
-            }
-            document.write("Visited "+ localStorage.pagecount + " time(s).");
-        </script>
-
+        <table>
+            <thead>
+                <tr>
+                    <th>Points</th>
+                    <th>Quadtree</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><div id="stat"></div></td>
+                    <td><div id="oct"></div></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            <script type="text/javascript">
+                if (localStorage.pagecount)
+                {
+                    localStorage.pagecount = Number(localStorage.pagecount) + 1;
+                }
+                else
+                {
+                    localStorage.pagecount = 1;
+                }
+                document.write("Visited "+ localStorage.pagecount + " time(s).");
+            </script>
+        </p>
     </body>
 </html>
