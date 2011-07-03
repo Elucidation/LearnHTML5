@@ -10,35 +10,66 @@
             }
             canvas {
                 border: 1px solid;
+                position: relative;
             }
         </style>
         <script type="text/javascript"> <!--
             var canvasContext;
+            var stat;
             function init() {
                 var c = document.getElementById("argh");
+                stat = document.getElementById("stat");
+                
                 canvasContext = c.getContext("2d");
+                canvasContext.strokeStyle = '#00f';
+                canvasContext.lineWidth = "2";
             }
             function drawSomeRect() {
-                canvasContext.fillRect(50,20,150,100);
+                canvasContext.fillRect(20,20,10,10);
             }
             function clearSomeRect() {
-                canvasContext.clearRect(50,20,150,100);
+                canvasContext.clearRect(20,20,30,30);
             }
-        --></script>
+            
+            function drawBox(x,y,w,h) {
+                canvasContext.strokeRect(x,y,w,h);
+            }
+            
+            function mouseClick(e)
+            {
+                var mouseX, mouseY;
+
+                if(e.offsetX) {
+                    mouseX = e.offsetX;
+                    mouseY = e.offsetY;
+                }
+                else if(e.layerX) {
+                    mouseX = e.layerX;
+                    mouseY = e.layerY;
+                }
+                drawBox(mouseX,mouseY,30,50);
+                
+                stat.innerHTML = "Mouse Pos: "+mouseX +", " + mouseY;
+            }            
+            --></script>
     </head>
     <body onload="init();">
         <h1>So far so good.</h1>
-        <script type="text/javascript"> <!--
-            document.write("<p>" + Date() + "</p>");    
-            document.write("<p>Script appears to be functioning</p>");
-        --></script>
-        <p><canvas id="argh"
-                   width="800" 
-                   height="500" 
-                   onmouseover="drawSomeRect();"
-                   onmouseout="clearSomeRect()">
+        <p>
+            <canvas id="argh"
+                    width="600" 
+                    height="300" 
+                    onmouseover="drawSomeRect();"
+                    onmouseout="clearSomeRect();"
+                    onclick="mouseClick(event);">
 
-            </canvas></p>
+            </canvas>
+        </p>
+        <div id="stat">aa</div>
+        <script type="text/javascript"> <!--
+            document.write("<p>" + Date() + "</p>");
+            document.write("<p>Script appears to be functioning</p>");
+            --></script>
 
     </body>
 </html>
