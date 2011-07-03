@@ -3,30 +3,42 @@
     <head>
         <title>Learning HTML5</title>
 
-        <script>
-            function drawSomeRect() {
+        <style>
+            body {
+                padding: 10px;
+                text-align: center;
+            }
+            canvas {
+                border: 1px solid;
+            }
+        </style>
+        <script type="text/javascript"> <!--
+            var canvasContext;
+            function init() {
                 var c = document.getElementById("argh");
-                var cont = c.getContext("2d");
-                cont.fillRect(50,20,150,100);
+                canvasContext = c.getContext("2d");
+            }
+            function drawSomeRect() {
+                canvasContext.fillRect(50,20,150,100);
             }
             function clearSomeRect() {
-                var c = document.getElementById("argh");
-                var cont = c.getContext("2d");
-                cont.clearRect(50,20,150,100);
+                canvasContext.clearRect(50,20,150,100);
             }
-        
-        </script>
-
+        --></script>
     </head>
-    <body>
-        So far so good.
-        <canvas id="argh"
-                width="300" 
-                height="200" 
-                style="border:1px dotted"
-                onmouseover="drawSomeRect();"
-                onmouseout="clearSomeRect()">
+    <body onload="init();">
+        <h1>So far so good.</h1>
+        <script type="text/javascript"> <!--
+            document.write("<p>" + Date() + "</p>");    
+            document.write("<p>Script appears to be functioning</p>");
+        --></script>
+        <p><canvas id="argh"
+                   width="800" 
+                   height="500" 
+                   onmouseover="drawSomeRect();"
+                   onmouseout="clearSomeRect()">
 
-        </canvas>
+            </canvas></p>
+
     </body>
 </html>
