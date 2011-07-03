@@ -9,6 +9,11 @@
                 var cont = c.getContext("2d");
                 cont.fillRect(50,20,150,100);
             }
+            function clearSomeRect() {
+                var c = document.getElementById("argh");
+                var cont = c.getContext("2d");
+                cont.clearRect(50,20,150,100);
+            }
         
         </script>
 
@@ -19,7 +24,8 @@
                 width="300" 
                 height="200" 
                 style="border:1px dotted"
-                onmouseover="drawSomeRect();">
+                onmouseover="drawSomeRect();"
+                onmouseout="clearSomeRect()">
 
         </canvas>
     </body>
