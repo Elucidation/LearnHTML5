@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learning HTML5</title>
+
+        <style>
+            body {
+                padding: 10px;
+                text-align: center;
+            }
+            canvas {
+                border: 1px solid;
+                position: relative;
+            }
+            table {
+                position: relative;
+                left: 30%;
+                text-align: left;
+                vertical-align: top;
+                border: 1px;
+                border-style: solid;
+                padding: 10px;
+            }
+            td {
+                padding: 5px;
+                vertical-align: top;
+            }
+        </style>
+        <script type="text/javascript"> <!--
+            var cxt;
+            var canvasThing; 
+            var stat,quadStatus;
+            var px, py; // Points arrays
+            var maxDepth = 6; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+            var depthString = "----------"; // used for depth --- marks, need more than maxDepth
+            if (depthString.length < maxDepth) {
+                alert("Depth string too short!");
+            }
+            var splitN = 2; // Number of particles to split a box on
+            var vx,vy;
+            
+            function init() {
+                // Canvas
+                canvasThing = document.getElementById("argh");
+                cxt = canvasThing.getContext("2d");
+                // Statistics
+                stat = document.getElementById("stat");
+                quadStatus = document.getElementById("oct");
+                
+                // Initialize points array
+                px = new Array();
+                py = new Array();
+                vx = new Array();
+                vy = new Array();
+                bh = {
+                    x: canvasThing.width/2,
+                    y: canvasThing.height/2
+                };
+                
+                cxt.strokeStyle = '#00f'; // blue
+                cxt.lineWidth = "1";
+                setInterval(update, 20);
+            }
+            
+            function clearUp() {
+                //canvasThing.width = canvasThing.width; // clears canvas // LIES THIS THING MAKES LIFE SAD
+                cxt.fillStyle = "rgba(255,255,255,0.3)";
+                cxt.fillRect(0,0,canvasThing.width,canvasThing.height);
+
+                // Redraw Points
+                for (i=0; i < px.length; i++) {
+                    drawPoint(px[i],py[i]);
+                }
+            }
+            
+            function drawBox(x,y,w,h) {
+                cxt.strokeStyle = '#00f';
+                cxt.lineWidth = "1";
+                cxt.strokeRect(x,y,w,h);
+            }
+            
+            function drawPoint(x,y) {
+                cxt.strokeStyle = '#a00';
+                cxt.fillStyle = '#f00'
+                cxt.lineWidth = "1.5";
+                cxt.beginPath();
+                cxt.arc(x-1,y-1,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
+                cxt.closePath();
+                cxt.stroke();
+                cxt.fill();
+            }
+            var bh;
+            var softenE = 0.9;
+            var M = 300;
+            function move() {   
+                // Leapfrog
+                for (i=0;i<px.length;i++) {
+                    px[i] += vx[i] * 0.5;
+                    py[i] += vy[i] * 0.5;
+                }
+                
+                // Do Gravity simple
+                for (i=0;i<px.length;i++) {
+                    var dx = px[i]-bh.x;
+                    var dy = py[i]-bh.y;
+                    var r = Math.sqrt(dx*dx+dy*dy);
+                    var gforce = M/Math.pow(r+softenE, 3);
+                    var fx = gforce * dx;
+                    var fy = gforce * dy;
+                    vx[i] -= fx;
+                    vy[i] -= fy;
+                }
+                
+                // Clamp & Move particles
+                var damp = 0.9;
+                for (i=0;i<px.length;i++) {
+                    /*if (px[i] < 0) {px[i] = 0; vx[i] = Math.abs(vx[i])*damp;}
+                    if (px[i] > canvasThing.width) {px[i] = canvasThing.width; vx[i] = -Math.abs(vx[i]*damp);}
+                    if (py[i] < 0) {py[i] = 0; vy[i] = Math.abs(vy[i])*damp;}
+                    if (py[i] > canvasThing.height) {py[i] = canvasThing.height; vy[i] = -Math.abs(vy[i]*damp);}*/
+                    if (px[i] < 0 || px[i] > canvasThing.width || py[i] < 0 || py[i] > canvasThing.height) {
+                        randomizePoint(i);
+                    }
+                }
+                
+                // Leapfrog
+                for (i=0;i<px.length;i++) {
+                    px[i] += vx[i] * 0.5;
+                    py[i] += vy[i] * 0.5;
+                }
+            }
+            
+            function mouseClick(e)
+            {
+                var mouseX, mouseY;
+
+                if(e.offsetX) {
+                    mouseX = e.offsetX;
+                    mouseY = e.offsetY;
+                }
+                else if(e.layerX) {
+                    mouseX = e.layerX;
+                    mouseY = e.layerY;
+                }
+                //drawPoint(mouseX,mouseY);
+                addPoint(mouseX,mouseY);
+                
+                //update();
+            }
+            function setPointInArray(x,y,velx,vely,k) {
+                // puts point info into array at k
+                px [k] = x;
+                py [k] = y;
+                vx [k] = velx;
+                vy [k] = vely;
+            }
+            
+            function addPoint(x,y) {
+                var dx = bh.x - x;
+                var dy = bh.y - y;
+                var r = Math.sqrt(dx*dx+dy*dy);
+                var velx = -dy/r * Math.sqrt(M/r);
+                var vely = dx/r * Math.sqrt(M/r);
+                
+                setPointInArray(x,y,velx,vely,px.length);
+            }
+            
+            function randomizePoint(k) {
+                // make point k in array px py (0..n) random again
+                var x = Math.random() * canvasThing.width;
+                var y = Math.random() * canvasThing.height;
+                
+                var dx = bh.x - px[k];
+                var dy = bh.y - py[k];
+                var r = Math.sqrt(dx*dx+dy*dy);
+                var velx = -dy/r * Math.sqrt(M/r);
+                var vely = dx/r * Math.sqrt(M/r);
+                setPointInArray(x,y,velx,vely,k);
+            }
+            
+            function update() {
+                move();
+                
+                //quadStatus.innerHTML += rootQuadTree.getInfo();
+                
+                //stat.innerHTML = "<b>Mouse Pos: "+mouseX +", " + mouseY + "</b><br>";
+                stat.innerHTML = "Number of Points: "+ px.length + "<br>";
+                /*for (i=0; i < px.length; i++) {
+                    stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
+                }*/
+                clearUp();
+                drawPoint(bh.x,bh.y);
+            }
+            
+            function reset() {
+                px = new Array();
+                py = new Array();
+                cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
+                quadStatus.innerHTML = "";
+                stat.innerHTML = "";
+            }
+            
+            function randomAssortment(){
+                if (px.length < 1000) {
+                    var n = 50;
+                    for (i=0;i<n;i++) {
+                        var x = Math.random() * canvasThing.width;
+                        var y = Math.random() * canvasThing.height;
+                        addPoint(x,y);
+                    }
+                    update();
+                }
+            }
+            
+            --></script>
+    </head>
+    <body onload="init();">
+        <h1>Still alive</h1>
+        <p>gravitational interaction with fixed center point, uses leapfrog</p>
+        <p>Click somewhere in the box!</p>
+        <p>
+            <canvas id="argh"
+                    width="600" 
+                    height="400" 
+                    onclick="mouseClick(event);">
+
+            </canvas>
+            <button onclick="reset();">Reset</button>
+            <button onclick="randomAssortment();">Random Assortment</button>
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Points</th>
+                    <th>Daa</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><div id="stat"></div></td>
+                    <td><div id="oct"></div></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            <script type="text/javascript">
+                if (localStorage.pagecount)
+                {
+                    localStorage.pagecount = Number(localStorage.pagecount) + 1;
+                }
+                else
+                {
+                    localStorage.pagecount = 1;
+                }
+                document.write("Visited "+ localStorage.pagecount + " time(s).");
+            </script>
+        </p>
+    </body>
+</html>
