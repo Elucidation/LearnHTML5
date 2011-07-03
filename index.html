@@ -30,6 +30,10 @@
             var canvasThing; 
             var stat,quadStatus;
             var px, py; // Points arrays
+            var maxDepth = 5; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+            var splitN = 2; // Number of particles to split a box on
+            
+            
             function init() {
                 // Canvas
                 canvasThing = document.getElementById("argh");
@@ -89,7 +93,11 @@
                 px [px.length] = mouseX;
                 py [py.length] = mouseY;
                 
-                makeQuadtree();
+                makeQuadtree(maxDepth,splitN);
+                
+                quadStatus.innerHTML = "Max Depth: "+maxDepth+", Split on N >= "+splitN+
+                    ", Number of Quads: " + quadCount + "<br>";
+                quadStatus.innerHTML += rootQuadTree.getInfo();
                 
                 //stat.innerHTML = "<b>Mouse Pos: "+mouseX +", " + mouseY + "</b><br>";
                 stat.innerHTML = "Number of Points: "+ px.length + "<br>";
@@ -156,14 +164,9 @@
             
             var quadCount;
             var rootQuadTree;
-            function makeQuadtree() {
-                var maxDepth = 5; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
-                var splitN = 2; // Number of particles to split a box on
+            function makeQuadtree(maxDepth,splitN) {
                 quadCount = 0;
                 rootQuadTree = new doQuad(0,0,canvasThing.width,canvasThing.height,splitN,0,maxDepth);
-                quadStatus.innerHTML = "Max Depth: "+maxDepth+", Split on N >= "+splitN+
-                    ", Number of Quads: " + quadCount + "<br>";
-                quadStatus.innerHTML += rootQuadTree.getInfo();
             }
             
             function doQuad(x,y,x2,y2,maxP,depth,maxDepth) {
@@ -199,6 +202,13 @@
                 }
                 return sum;
             }
+            
+            function reset() {
+                px = new Array();
+                py = new Array();
+                cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
+            }
+            
             --></script>
     </head>
     <body onload="init();">
@@ -211,6 +221,7 @@
                     onclick="mouseClick(event);">
 
             </canvas>
+            <button onclick="reset();">Reset</button>
         </p>
         <table>
             <thead>
