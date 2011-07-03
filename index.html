@@ -39,6 +39,8 @@
             var splitN = 2; // Number of particles to split a box on
             var vx,vy;
             
+            var intID;
+            
             function init() {
                 // Canvas
                 canvasThing = document.getElementById("argh");
@@ -56,7 +58,11 @@
                 
                 cxt.strokeStyle = '#00f'; // blue
                 cxt.lineWidth = "1";
-                setInterval(update, 20);
+                intID = setInterval(update, 20);
+            }
+            
+            function pause() {
+                clearInterval(intID);
             }
             
             function clearUp() {
@@ -114,7 +120,7 @@
                 //drawPoint(mouseX,mouseY);
                 addPoint(mouseX,mouseY);
                 
-                update();
+                refresh();
             }   
             function addPoint(x,y) {
                 px [px.length] = x;
@@ -125,6 +131,11 @@
             
             function update() {
                 move();
+                
+                refresh();
+            }
+            
+            function refresh() {
                 makeQuadtree(maxDepth,splitN);
                 
                 quadStatus.innerHTML = "Max Depth: "+maxDepth+", Split on N >= "+splitN+
@@ -249,7 +260,7 @@
                     var y = Math.random() * canvasThing.height;
                     addPoint(x,y);
                 }
-                update();
+                refresh();
             }
             
             --></script>
@@ -266,6 +277,7 @@
             </canvas>
             <button onclick="reset();">Reset</button>
             <button onclick="randomAssortment();">Random Assortment</button>
+            <button onclick="pause();">Pause</button>
         </p>
         <table>
             <thead>
