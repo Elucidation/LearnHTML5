@@ -16,9 +16,15 @@
         <script type="text/javascript"> <!--
             var canvasContext;
             var stat;
+            var px, py; // Points arrays
             function init() {
                 var c = document.getElementById("argh");
                 stat = document.getElementById("stat");
+                
+                // Initialize points array
+                px = new Array();
+                py = new Array();
+                
                 
                 canvasContext = c.getContext("2d");
                 canvasContext.strokeStyle = '#00f';
@@ -48,8 +54,15 @@
                     mouseY = e.layerY;
                 }
                 drawBox(mouseX,mouseY,30,50);
+                px [px.length] = mouseX;
+                py [py.length] = mouseY;
                 
-                stat.innerHTML = "Mouse Pos: "+mouseX +", " + mouseY;
+                stat.innerHTML = "Mouse Pos: "+mouseX +", " + mouseY + "<br>";
+                stat.innerHTML += "Number of Points: "+ px.length + "<br>";
+                for (i=0; i < px.length; i++) {
+                    stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
+                }
+                
             }            
             --></script>
     </head>
