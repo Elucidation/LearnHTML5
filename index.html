@@ -1,9 +1,26 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>Learning HTML5</title>
-</head>
-<body>
-So far so good.
+    <head>
+        <title>Learning HTML5</title>
 
-</body>
+        <script>
+            function drawSomeRect() {
+                var c = document.getElementById("argh");
+                var cont = c.getContext("2d");
+                cont.fillRect(50,20,150,100);
+            }
+        
+        </script>
+
+    </head>
+    <body>
+        So far so good.
+        <canvas id="argh"
+                width="300" 
+                height="200" 
+                style="border:1px dotted"
+                onmouseover="drawSomeRect();">
+
+        </canvas>
+    </body>
 </html>
