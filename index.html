@@ -23,6 +23,7 @@
             }
             td {
                 padding: 5px;
+                vertical-align: top;
             }
         </style>
         <script type="text/javascript"> <!--
@@ -30,9 +31,13 @@
             var canvasThing; 
             var stat,quadStatus;
             var px, py; // Points arrays
-            var maxDepth = 5; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+            var maxDepth = 6; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
+            var depthString = "----------"; // used for depth --- marks, need more than maxDepth
+            if (depthString.length < maxDepth) {
+                alert("Depth string too short!");
+            }
             var splitN = 2; // Number of particles to split a box on
-            
+            var vx,vy;
             
             function init() {
                 // Canvas
@@ -45,15 +50,18 @@
                 // Initialize points array
                 px = new Array();
                 py = new Array();
+                vx = new Array();
+                vy = new Array();
                 
                 
                 cxt.strokeStyle = '#00f'; // blue
                 cxt.lineWidth = "1";
+                setInterval(update, 20);
             }
             
             function clearUp() {
                 //canvasThing.width = canvasThing.width; // clears canvas // LIES THIS THING MAKES LIFE SAD
-                clearRect(0,0,canvasThing.width,canvasThing.height);
+                cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
                 // Redraw Quadtree
                 rootQuadTree.drawTree();
                 // Redraw Points
@@ -69,12 +77,26 @@
             }
             
             function drawPoint(x,y) {
-                cxt.strokeStyle = '#a00';
-                cxt.lineWidth = "1";
+                cxt.strokeStyle = '#f00';
+                cxt.fillStyle = '#fff'
+                cxt.lineWidth = "1.5";
                 cxt.beginPath();
-                cxt.arc(x,y,2,0,Math.PI*2,true);
+                cxt.arc(x-1,y-1,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
                 cxt.closePath();
                 cxt.stroke();
+                cxt.fill();
+            }
+            
+            function move() {
+                for (i=0;i<px.length;i++) {
+                    if (px[i] < 0) {vx[i] *= -1;}
+                    if (px[i] > canvasThing.width) {vx[i] *= -1;}
+                    if (py[i] < 0) {vy[i] *= -1;}
+                    if (py[i] > canvasThing.height) {vy[i] *= -1;}
+                    
+                    px[i] += vx[i];
+                    py[i] += vy[i];
+                }
             }
             
             function mouseClick(e)
@@ -89,10 +111,20 @@
                     mouseX = e.layerX;
                     mouseY = e.layerY;
                 }
-                drawPoint(mouseX,mouseY);
-                px [px.length] = mouseX;
-                py [py.length] = mouseY;
+                //drawPoint(mouseX,mouseY);
+                addPoint(mouseX,mouseY);
                 
+                update();
+            }   
+            function addPoint(x,y) {
+                px [px.length] = x;
+                py [py.length] = y;
+                vx [vx.length] = Math.random()-0.5;
+                vy [vy.length] = Math.random()-0.5;
+            }
+            
+            function update() {
+                move();
                 makeQuadtree(maxDepth,splitN);
                 
                 quadStatus.innerHTML = "Max Depth: "+maxDepth+", Split on N >= "+splitN+
@@ -105,8 +137,7 @@
                     stat.innerHTML += "Point #"+i+": "+ px[i] + ", "+ py[i]+"<br>";
                 }
                 clearUp();
-                
-            }   
+            }
             
             ///// Pseudoclass Quadtree + functions
             function Quadtree(x,y,x2,y2,depth,a,b,c,d) {
@@ -152,10 +183,10 @@
             Quadtree.prototype.getInfo = function() {
                 var strOut = "Quad D"+this.depth+" N: "+this.getQuadNumParticles()+"<br>";
                 if (this.hasChildren()) {
-                    strOut += "-----------".substr(0,this.depth+1)+"A"+this.a.getInfo();
-                    strOut += "-----------".substr(0,this.depth+1)+"B"+this.b.getInfo();
-                    strOut += "-----------".substr(0,this.depth+1)+"C"+this.c.getInfo();
-                    strOut += "-----------".substr(0,this.depth+1)+"D"+this.d.getInfo();
+                    strOut += depthString.substr(0,this.depth+1)+"A"+this.a.getInfo();
+                    strOut += depthString.substr(0,this.depth+1)+"B"+this.b.getInfo();
+                    strOut += depthString.substr(0,this.depth+1)+"C"+this.c.getInfo();
+                    strOut += depthString.substr(0,this.depth+1)+"D"+this.d.getInfo();
                 }
                 return strOut;
             };
@@ -176,7 +207,7 @@
                 // maxDepth is the the point at which you don't create any boxes below you, regardless of points quantity
                 var me = new Quadtree(x,y,x2,y2,depth);
                 var n = me.getQuadNumParticles();
-                me.drawQuad();
+                //me.drawQuad();
                 quadCount++;
                 // Recursive element
                 if (n >= maxP && depth < maxDepth) {
@@ -207,6 +238,18 @@
                 px = new Array();
                 py = new Array();
                 cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
+                quadStatus.innerHTML = "";
+                stat.innerHTML = "";
+            }
+            
+            function randomAssortment(){
+                var n = 10;
+                for (i=0;i<n;i++) {
+                    var x = Math.random() * canvasThing.width;
+                    var y = Math.random() * canvasThing.height;
+                    addPoint(x,y);
+                }
+                update();
             }
             
             --></script>
@@ -222,6 +265,7 @@
 
             </canvas>
             <button onclick="reset();">Reset</button>
+            <button onclick="randomAssortment();">Random Assortment</button>
         </p>
         <table>
             <thead>
