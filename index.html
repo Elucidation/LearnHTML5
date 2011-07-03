@@ -83,7 +83,7 @@
                 var maxDepth = 4; // Number of times you can split deeper (0 is original full canvas box) 4 boxes per split
                 var splitN = 2; // Number of particles to split a box on
                 quadStatus.innerHTML = "";
-                doQuad(0,0,canvasThing.width,canvasThing.height,2,0,maxDepth);
+                doQuad(0,0,canvasThing.width,canvasThing.height,splitN,0,maxDepth);
             }
             
             function doQuad(x,y,x2,y2,maxP,depth,maxDepth) {
@@ -92,18 +92,19 @@
                 // depth is current level of splits in (original box containing entire canvas is depth 0)
                 // maxDepth is the the point at which you don't create any boxes below you, regardless of points quantity
                 var n = getNumberOfParticlesInBox(x,y,x2,y2);
-                drawBox(x,y,x2,y2);
+                drawBox(x,y,x2-x,y2-y);
                 quadStatus.innerHTML += "Quad D"+depth+" [("+x+","+y+")("+x2+","+y2+")] N: "+n + "<br>";
                 
                 // Recursive element
                 if (n >= maxP && depth < maxDepth) {
                     var mx = x + (x2-x)/2;
                     var my = y + (y2-y)/2;
-                    
+                    quadStatus.innerHTML += "-D"+depth+"--<br>";
                     doQuad(x,y,mx,my,maxP,depth+1,maxDepth); // Top Left
                     doQuad(mx,y,x2,my,maxP,depth+1,maxDepth); // Top Right
                     doQuad(x,my,mx,y2,maxP,depth+1,maxDepth); // Bottom Left
                     doQuad(mx,my,x2,y2,maxP,depth+1,maxDepth); // Bottom Right
+                    quadStatus.innerHTML += "---<br>";
                 }
                 
             }
@@ -114,7 +115,7 @@
                 // Includes points directly on top&left side edges
                 var sum = 0;
                 for (i=0; i<px.length; i++) {
-                    if (x <= px[i] && px[i] < x2 && y <= py[i] && py[i] < y2) {
+                    if ((x <= px[i]) && (px[i] < x2) && (y <= py[i]) && (py[i] < y2)) {
                         sum += 1;
                     }
                 }
