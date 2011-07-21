@@ -16,51 +16,72 @@
         <script type="text/javascript"> <!--
             var cxt;
             var canvasThing; 
-            var circlePosField;
+            var circlePosField, posField;
             var intID;
+            var cx,cy, cradius; // Circle Position
+            var x,y,dx,dy; // Position & keypress change speed
+            var WIDTH,HEIGHT;
+            var ship;
             
             function init() {
                 // Canvas
                 canvasThing = document.getElementById("theCanvas");
                 cxt = canvasThing.getContext("2d");
+                WIDTH = canvasThing.width;
+                HEIGHT = canvasThing.height;
                 // Statistics
                 circlePosField = document.getElementById("cpos");
-                circlePosField.innerHTML = "Nothing yet";
+                posField = document.getElementById("pos");
+                spaceShipPosField = document.getElementById("spos");
                 
+                // Init variables
+                x = WIDTH/2;
+                y = HEIGHT/2;
+                dx = dy = 5
+                window.onkeydown = doKeyDown;
                 
-                // Draw circel
-                cxt.strokeStyle = '#f00';
-                cxt.fillStyle = '#cad';
-                drawCircle(300,20000000,20000000-200); // Page Height 300, Width 600
+                ship = {x:x,y:y}
+                
+                // Draw planet // Assuming 1m = 1 pixel?
+                cradius = 200;
+                cx = 300;
+                cy = 250+cradius;   
+                drawPlanet();
+                
+                update();
             }
-            
+            function updateStatistics() {
+              circlePosField.innerHTML = cx+", "+cy;
+              posField.innerHTML = x+", "+y + "    :    "+dx +", "+dy;
+              spaceShipPosField.innerHTML = ship.x+", "+ship.y
+            }
             function clearUp() {
-                cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
+                cxt.clearRect(0,0,WIDTH,HEIGHT);
             }
-            
+            function drawPlanet() {
+                cxt.strokeStyle = '#f00';
+                cxt.lineWidth = 5;
+                cxt.fillStyle = '#cad';
+                drawCircle(cx-(x-WIDTH/2),cy-(y-HEIGHT/2),cradius);
+            }
+            function drawShip() {
+              cxt.strokeStyle = '#f00';
+              cxt.fillStyle = '#f0f'
+              cxt.lineWidth = "1.5";
+              drawPoint(ship.x,ship.y)
+            }
             
             function drawPoint(x,y) {
-                cxt.strokeStyle = '#f00';
-                cxt.fillStyle = '#fff'
-                cxt.lineWidth = "1.5";
-                cxt.beginPath();
-                cxt.arc(x,y,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
-                cxt.closePath();
-                cxt.stroke();
-                cxt.fill();
+                drawCircle(x,y,2);
             }
             
             function drawCircle(x,y,radius) {
-                cxt.lineWidth = "1.5";
                 cxt.beginPath();
-                cxt.arc(x,y,radius,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
+                cxt.arc(x,y,radius,0,Math.PI*2,true);
                 cxt.closePath();
                 cxt.stroke();
                 cxt.fill();
             }
-            
-            
-            
             
             function mouseClick(e)
             {
@@ -74,9 +95,10 @@
                     mouseX = e.layerX;
                     mouseY = e.layerY;
                 }
+                cxt.strokeStyle = '#f00';
+                cxt.fillStyle = '#fff'
+                cxt.lineWidth = "1.5";
                 drawPoint(mouseX,mouseY);
-                
-                refresh();
             }   
             
             function update() {
@@ -84,7 +106,33 @@
             }
             
             function refresh() {
-            }            
+              clearUp();
+              drawPlanet();
+              drawShip()
+              updateStatistics();
+            }   
+            
+            function doKeyDown(evt){
+              switch (evt.keyCode) {
+                case 38:  /* Up arrow was pressed */
+                      ship.y = y -= dy;
+                  break;
+                case 40:  /* Down arrow was pressed */
+                      ship.y = y += dy;
+                  break;
+                case 37:  /* Left arrow was pressed */
+                      ship.x = x -= dx;
+                  break;
+                case 39:  /* Right arrow was pressed */
+                      ship.x = x += dx;
+                  break;
+                case 32:  /* Spacebar pressed */
+                      ship.x = x = WIDTH/2;
+                      ship.y = y = HEIGHT/2;
+                  break;
+              }
+              update();
+            }
             --></script>
     </head>
     <body onload="init();">
@@ -94,8 +142,11 @@
                     width="600" 
                     height="300" 
                     onclick="mouseClick(event);">
+                    Your browser does not support HTML5 Canvas unfortunately.
             </canvas>
         </p>
         <p>Circle Position: <div id="cpos"></div></p>
+        <p>Camera Position: <div id="pos"></div></p>
+        <p>Spaceship Position: <div id="spos"></div></p>
     </body>
 </html>
