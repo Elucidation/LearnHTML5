@@ -12,19 +12,6 @@
                 border: 1px solid;
                 position: relative;
             }
-            table {
-                position: relative;
-                left: 30%;
-                text-align: left;
-                vertical-align: top;
-                border: 1px;
-                border-style: solid;
-                padding: 10px;
-            }
-            td {
-                padding: 5px;
-                vertical-align: top;
-            }
         </style>
         <script type="text/javascript"> <!--
             var cxt;
@@ -40,7 +27,11 @@
                 circlePosField = document.getElementById("cpos");
                 circlePosField.innerHTML = "Nothing yet";
                 
-                intID = setInterval(update, 20);
+                
+                // Draw circel
+                cxt.strokeStyle = '#f00';
+                cxt.fillStyle = '#cad';
+                drawCircle(300,300,100); // Page Height 300, Width 600
             }
             
             function clearUp() {
@@ -53,11 +44,22 @@
                 cxt.fillStyle = '#fff'
                 cxt.lineWidth = "1.5";
                 cxt.beginPath();
-                cxt.arc(x-1,y-1,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
+                cxt.arc(x,y,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
                 cxt.closePath();
                 cxt.stroke();
                 cxt.fill();
             }
+            
+            function drawCircle(x,y,radius) {
+                cxt.lineWidth = "1.5";
+                cxt.beginPath();
+                cxt.arc(x,y,radius,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
+                cxt.closePath();
+                cxt.stroke();
+                cxt.fill();
+            }
+            
+            
             
             
             function mouseClick(e)
@@ -72,14 +74,12 @@
                     mouseX = e.layerX;
                     mouseY = e.layerY;
                 }
-                //drawPoint(mouseX,mouseY);
                 drawPoint(mouseX,mouseY);
                 
                 refresh();
             }   
             
             function update() {
-                move();
                 refresh();
             }
             
