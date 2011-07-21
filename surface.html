@@ -19,7 +19,8 @@
             var circlePosField, posField, extraInfo;
             var intID;
             var cx,cy, cradius; // Circle Position
-            var x,y,dx,dy; // Position & keypress change speed
+            var x,y,dx,dy; // Camera Position & keypress change speed
+            var cameraFollow=true; // true = follow spaceship, false = free
             var zoom,dzoom;
             var WIDTH,HEIGHT;
             var ship;
@@ -258,12 +259,8 @@
                       zoom /= dzoom;
                   }
                   break;
-                case 80:  /* P was pressed */
-                  if (paused) {
-                      unpause();
-                  } else {
-                    pause();
-                  }
+                case 70:  /* F was pressed */
+                  cameraFollow = !cameraFollow;
                   break;   
                 default:
                   extraInfo.innerHTML = "Key pressed: "+evt.keyCode;
@@ -276,7 +273,11 @@
             function updateCamera() {
               cxt.setTransform(1, 0, 0, 1, 0, 0);
               cxt.scale(zoom,zoom);
-              cxt.translate(-ship.pos.x + (WIDTH/2/zoom),-ship.pos.y+HEIGHT/2/zoom);
+              if (cameraFollow) {
+                cxt.translate(-ship.pos.x + (WIDTH/2/zoom),-ship.pos.y+HEIGHT/2/zoom);
+              } else {
+                cxt.translate(-x/zoom + (WIDTH/2/zoom),-y/zoom+HEIGHT/2/zoom);
+              }
               
             }
             
@@ -304,7 +305,7 @@
               posField.innerHTML = x+", "+y + "     scale:     " + zoom;
               spaceShipPosField.innerHTML = ship.pos.x+", "+ship.pos.y + "   v:   " + ship.vel.x + ", " + ship.vel.y;
               timeField.innerHTML = timer + "      :       Framerate " + (1.0/DT);
-              extraInfo.innerHTML = "Checks: " + distChecks;
+              //extraInfo.innerHTML = "Checks: " + distChecks;
             }
             --></script>
     </head>
@@ -325,7 +326,8 @@
         <p>Extra Info: <b id="extraInfo"></b></p>
         <p><b>WASD</b> key thrusts ship around. <b>Spacebar</b> resets.</br>
                <b>Arrow Keys</b> move camera around, <b>z</b> & <b>x</b> zoom in and out respectively.<br>
-               Press <b>p</b> to pause & unpause.
+               Press <b>p</b> to pause & unpause.<br>
+               Press <b>f</b> to switch camera mode between follow to free
                </p>
     </body>
 </html>
