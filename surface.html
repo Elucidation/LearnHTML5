@@ -7,12 +7,13 @@
             body {
                 padding: 10px;
                 text-align: left;
-            }
+            
             canvas {
                 border: 1px solid;
                 position: relative;
             }
         </style>
+        <script src="v2d.js"></script> 
         <script type="text/javascript"> <!--
             var cxt;
             var canvasThing; 
@@ -25,6 +26,8 @@
             var ship;
             var timer = 0;
             var DT = 1.0/35;
+            var paused = false; 
+            var distChecks = 0;
             
             function init() {
                 // Canvas
@@ -40,26 +43,35 @@
                 timeField= document.getElementById("time");
                 
                 // Init variables
-                x = 0;
-                y = 0;
-                dx = dy = 5
+                x = y = 0; // Camera position
+                dx = dy = 5 // Camera change position speed
                 zoom=1.0;
                 dzoom = 2; // Multiple
                 window.onkeydown = doKeyDown;
                 
-                ship = {x:x,y:y, radius:2,
-                        vx: 0, vy: 0,
-                        speed: 1}
+                ship = {pos: new v2d(0,0), radius:10,
+                        vel: new v2d(0,0),
+                        bounciness: 0.4,
+                        friction: 0.8,
+                        speed: 10}
+                resetSpaceShip(); // sets pos and velocities over again
                 
                 // Draw planet // Assuming 1m = 1 pixel?
-                cradius = 6800000; // 6,800km if 1pixel = 1m
+                cradius = 600; // 6,800km if 1pixel = 1m
                 cx = 300;
                 cy = 250+cradius;
                 drawPlanet();
                 
                 update();
-                intID = setInterval(update, (DT) * 1000);
-                //setInterval(refresh,(DT)*1000);
+                unpause();
+            }
+            function pause() {
+              clearInterval(intID);
+              paused = true;
+            }
+            function unpause() {
+              intID = setInterval(update, (DT) * 1000);
+              paused = false;
             }
             
             
@@ -72,15 +84,50 @@
             }
             
             function move() {
-              ship.x += ship.vx*DT;
-              ship.y += ship.vy*DT;
+              grav();
+              ship.pos.x += ship.vel.x*DT;
+              ship.pos.y += ship.vel.y*DT;
               
               // Collision Detect
+              var s = {x:ship.pos.x, y:ship.pos.y, radius:ship.radius}
               var p = {x:cx,y:cy,radius:cradius};
-              if (checkCollide(ship,p)) {
-                alert("collide");
-                resetSpaceShip();
+              if (checkCollide(s,p)) {
+                distChecks += 1;
+                extraInfo.innerHTML = "You Collided at location: " + ship.pos.x + ","+ship.pos.y;
+                //resetSpaceShip();
+                setShipOnEdgeOfCollide(p);
+                spaceShipCollide(p);
               }
+            }
+          
+            function grav() {
+              var b = new v2d(cx,cy);
+              var d = b.minus(ship.pos);
+              var r = d.length();
+              var f = 1000/Math.pow(r,1.1);
+              
+              var dir = d.copy();
+              dir.normalizeEq();
+              ship.vel.plusEq(dir.scale(f));
+            }
+            
+            function spaceShipCollide(p) {
+              // p is a circle with center x, y, and radius
+              var a = ship.pos;
+              var b = new v2d(p.x,p.y);
+              var d = b.minus(a);
+              var unit_norm = d;
+              unit_norm.normalizeEq();
+              distChecks += 1;
+              var unit_tan = new v2d(-d.y,d.x);
+              unit_tan.normalizeEq();
+              distChecks += 1;
+              var v1_norm = unit_norm.dot(ship.vel);
+              var v1_tan = unit_tan.dot(ship.vel);
+              
+              var new_v1_normV = unit_norm.scale(-v1_norm * ship.bounciness); // -1 for negative
+              var new_v1_tanV = unit_tan.scale(v1_tan * ship.friction);
+              ship.vel = new_v1_normV.plus(new_v1_tanV);
             }
             function checkCollide(cA,cB){
               var dx = cB.x-cA.x;
@@ -93,6 +140,20 @@
                 return false;
               }
             }
+            function setShipOnEdgeOfCollide(p) {
+              // p had  x,y, radius
+              var a = ship.pos.copy();
+              var b = new v2d(p.x,p.y);
+              var d = b.minus(a);
+              var dist = d.length();
+              distChecks += 1;
+              var fPos = dist - p.radius - ship.radius; // will be negative most times
+              if (fPos < 0) {
+                fPos /= dist;
+                var fVec = a.plus(d.scale(fPos));
+                ship.pos = fVec;
+              }
+            }
             
             function refresh() {
               clearUp();
@@ -102,7 +163,8 @@
               updateStatistics();
             }   
             function resetSpaceShip() {
-              ship.x = ship.y = ship.vx = ship.vy = 0;
+              ship.pos.set(WIDTH/2,HEIGHT/2);
+              ship.vel.set(0,0);
             }
             
             function clearUp() {
@@ -124,7 +186,7 @@
               cxt.strokeStyle = '#f00';
               cxt.fillStyle = '#f0f'
               cxt.lineWidth = "1.5";
-              drawCircle(ship.x,ship.y,ship.radius)
+              drawCircle(ship.pos.x,ship.pos.y,ship.radius)
             }
             
             function drawPoint(x,y) {
@@ -160,22 +222,22 @@
                       x += dx;
                   break;
                 case 32:  /* Spacebar pressed */
-                      x = y = 0;
+                      x = y = 0; 
                       zoom = 1;
                       timer = 0;
                       resetSpaceShip();
                   break;
                 case 87:  /* W was pressed */
-                      ship.vy -= ship.speed;
+                      ship.vel.y -= ship.speed;
                   break;
                 case 83:  /* S was pressed */
-                      ship.vy += ship.speed;
+                      ship.vel.y += ship.speed;
                   break;
                 case 65:  /* A was pressed */
-                      ship.vx -= ship.speed;
+                      ship.vel.x -= ship.speed;
                   break;
                 case 68:  /* D was pressed */
-                      ship.vx += ship.speed;
+                      ship.vel.x += ship.speed;
                   break;
                 case 90:  /* Z was pressed */
                       zoom *= dzoom;
@@ -185,13 +247,20 @@
                       zoom /= dzoom;
                   }
                   break;
+                case 80:  /* P was pressed */
+                  if (paused) {
+                      unpause();
+                  } else {
+                    pause();
+                  }
+                  break;   
                 default:
                   extraInfo.innerHTML = "Key pressed: "+evt.keyCode;
                   break;
               }
               cxt.setTransform(1, 0, 0, 1, 0, 0);
               cxt.scale(zoom,zoom);
-              cxt.translate(-x,-y);
+              cxt.translate(-x/zoom,-y/zoom);
             }
             
             
@@ -216,8 +285,9 @@
             function updateStatistics() {
               circlePosField.innerHTML = cx+", "+cy + " r: "+cradius;
               posField.innerHTML = x+", "+y + "     scale:     " + zoom;
-              spaceShipPosField.innerHTML = ship.x+", "+ship.y + "   v:   " + ship.vx + ", " + ship.vy;
-              timeField.innerHTML = timer
+              spaceShipPosField.innerHTML = ship.pos.x+", "+ship.pos.y + "   v:   " + ship.vel.x + ", " + ship.vel.y;
+              timeField.innerHTML = timer + "      :       Framerate " + (1.0/DT);
+              extraInfo.innerHTML = "Checks: " + distChecks;
             }
             --></script>
     </head>
@@ -236,5 +306,9 @@
         <p>Spaceship Position: <b id="spos"></b></p>
         <p>Time: <b id="time"></b></p>
         <p>Extra Info: <b id="extraInfo"></b></p>
+        <p><b>WASD</b> key thrusts ship around. <b>Spacebar</b> resets.</br>
+               <b>Arrow Keys</b> move camera around, <b>z</b> & <b>x</b> zoom in and out respectively.<br>
+               Press <b>p</b> to pause & unpause.
+               </p>
     </body>
 </html>
