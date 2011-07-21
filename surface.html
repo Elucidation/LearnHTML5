@@ -259,6 +259,13 @@
                       zoom /= dzoom;
                   }
                   break;
+                case 80:  /* P was pressed */
+                  if (paused) {
+                      unpause();
+                  } else {
+                    pause();
+                  }
+                  break;   
                 case 70:  /* F was pressed */
                   cameraFollow = !cameraFollow;
                   break;   
