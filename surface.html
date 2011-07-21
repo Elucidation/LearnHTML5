@@ -2,12 +2,11 @@
 <html>
     <head>
         <title>Learning HTML5</title>
-
-        <style>
+        <style type="text/css">
             body {
                 padding: 10px;
                 text-align: left;
-            
+            }
             canvas {
                 border: 1px solid;
                 position: relative;
@@ -157,6 +156,7 @@
             
             function refresh() {
               clearUp();
+              updateCamera();
               drawOrigin();
               drawPlanet();
               drawShip()
@@ -258,9 +258,14 @@
                   extraInfo.innerHTML = "Key pressed: "+evt.keyCode;
                   break;
               }
+              refresh();
+            }
+            
+            function updateCamera() {
               cxt.setTransform(1, 0, 0, 1, 0, 0);
               cxt.scale(zoom,zoom);
-              cxt.translate(-x/zoom,-y/zoom);
+              cxt.translate(-ship.pos.x + (WIDTH/2/zoom),-ship.pos.y+HEIGHT/2/zoom);
+              
             }
             
             
