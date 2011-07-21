@@ -27,6 +27,7 @@
             var DT = 1.0/35;
             var paused = false; 
             var distChecks = 0;
+            var stuck = false;
             
             function init() {
                 // Canvas
@@ -75,7 +76,9 @@
             
             
             function update() {
-              move();
+              if (!stuck) {
+                move();
+              }
            
               timer+=DT;
               
@@ -96,6 +99,10 @@
                 //resetSpaceShip();
                 setShipOnEdgeOfCollide(p);
                 spaceShipCollide(p);
+                if (ship.vel.length() < 0.5) {
+                  ship.vel.scaleEq(0);
+                  stuck = true;
+                }
               }
             }
           
@@ -184,7 +191,11 @@
             }
             function drawShip() {
               cxt.strokeStyle = '#f00';
-              cxt.fillStyle = '#f0f'
+              if (stuck) {
+                cxt.fillStyle = '#0f0'
+              } else {
+                cxt.fillStyle = '#f0f'
+              }
               cxt.lineWidth = "1.5";
               drawCircle(ship.pos.x,ship.pos.y,ship.radius)
             }
@@ -259,6 +270,7 @@
                   break;
               }
               refresh();
+              stuck = false;
             }
             
             function updateCamera() {
