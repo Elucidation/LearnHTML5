@@ -6,7 +6,7 @@
         <style>
             body {
                 padding: 10px;
-                text-align: center;
+                text-align: left;
             }
             canvas {
                 border: 1px solid;
@@ -16,7 +16,7 @@
         <script type="text/javascript"> <!--
             var cxt;
             var canvasThing; 
-            var circlePosField, posField;
+            var circlePosField, posField, extraInfo;
             var intID;
             var cx,cy, cradius; // Circle Position
             var x,y,dx,dy; // Position & keypress change speed
@@ -33,10 +33,11 @@
                 circlePosField = document.getElementById("cpos");
                 posField = document.getElementById("pos");
                 spaceShipPosField = document.getElementById("spos");
+                extraInfo = document.getElementById("extraInfo");
                 
                 // Init variables
-                x = WIDTH/2;
-                y = HEIGHT/2;
+                x = 0;
+                y = 0;
                 dx = dy = 5
                 window.onkeydown = doKeyDown;
                 
@@ -50,19 +51,33 @@
                 
                 update();
             }
-            function updateStatistics() {
-              circlePosField.innerHTML = cx+", "+cy;
-              posField.innerHTML = x+", "+y + "    :    "+dx +", "+dy;
-              spaceShipPosField.innerHTML = ship.x+", "+ship.y
+            
+            function update() {
+                refresh();
             }
+            
+            function refresh() {
+              clearUp();
+              drawOrigin();
+              drawPlanet();
+              drawShip()
+              updateStatistics();
+            }   
+            
             function clearUp() {
-                cxt.clearRect(0,0,WIDTH,HEIGHT);
+              // I have lots of transforms right now
+              cxt.save();
+              cxt.setTransform(1, 0, 0, 1, 0, 0);
+              // Will always clear the right space
+              cxt.clearRect(0,0,WIDTH,HEIGHT);
+              cxt.restore();
+              // Still have my old transforms
             }
             function drawPlanet() {
                 cxt.strokeStyle = '#f00';
                 cxt.lineWidth = 5;
                 cxt.fillStyle = '#cad';
-                drawCircle(cx-(x-WIDTH/2),cy-(y-HEIGHT/2),cradius);
+                drawCircle(cx,cy,cradius);
             }
             function drawShip() {
               cxt.strokeStyle = '#f00';
@@ -74,6 +89,12 @@
             function drawPoint(x,y) {
                 drawCircle(x,y,2);
             }
+            function drawOrigin(){
+              cxt.strokeStyle = '#00f';
+              cxt.fillStyle = '#000'
+              cxt.lineWidth = "1";
+              drawPoint(0,0)
+            }
             
             function drawCircle(x,y,radius) {
                 cxt.beginPath();
@@ -82,6 +103,46 @@
                 cxt.stroke();
                 cxt.fill();
             }
+            
+            function doKeyDown(evt){
+              switch (evt.keyCode) {
+                case 38:  /* Up arrow was pressed */
+                      y -= dy;
+                  break;
+                case 40:  /* Down arrow was pressed */
+                      y += dy;
+                  break;
+                case 37:  /* Left arrow was pressed */
+                      x -= dx;
+                  break;
+                case 39:  /* Right arrow was pressed */
+                      x += dx;
+                  break;
+                case 32:  /* Spacebar pressed */
+                      ship.x = x = 0;
+                      ship.y = y = 0;
+                  break;
+                case 87:  /* W was pressed */
+                      ship.y -= dy;
+                  break;
+                case 83:  /* S was pressed */
+                      ship.y += dy;
+                  break;
+                case 65:  /* A was pressed */
+                      ship.x -= dx;
+                  break;
+                case 68:  /* D was pressed */
+                      ship.x += dx;
+                  break;
+                default:
+                  extraInfo.innerHTML = "Key pressed: "+evt.keyCode;
+                  break;
+              }
+              cxt.setTransform(1, 0, 0, 1, 0, 0);
+              cxt.translate(-x,-y);
+              update();
+            }
+            
             
             function mouseClick(e)
             {
@@ -101,37 +162,10 @@
                 drawPoint(mouseX,mouseY);
             }   
             
-            function update() {
-                refresh();
-            }
-            
-            function refresh() {
-              clearUp();
-              drawPlanet();
-              drawShip()
-              updateStatistics();
-            }   
-            
-            function doKeyDown(evt){
-              switch (evt.keyCode) {
-                case 38:  /* Up arrow was pressed */
-                      ship.y = y -= dy;
-                  break;
-                case 40:  /* Down arrow was pressed */
-                      ship.y = y += dy;
-                  break;
-                case 37:  /* Left arrow was pressed */
-                      ship.x = x -= dx;
-                  break;
-                case 39:  /* Right arrow was pressed */
-                      ship.x = x += dx;
-                  break;
-                case 32:  /* Spacebar pressed */
-                      ship.x = x = WIDTH/2;
-                      ship.y = y = HEIGHT/2;
-                  break;
-              }
-              update();
+            function updateStatistics() {
+              circlePosField.innerHTML = cx+", "+cy;
+              posField.innerHTML = x+", "+y + "    :    "+dx +", "+dy;
+              spaceShipPosField.innerHTML = ship.x+", "+ship.y
             }
             --></script>
     </head>
@@ -145,8 +179,9 @@
                     Your browser does not support HTML5 Canvas unfortunately.
             </canvas>
         </p>
-        <p>Circle Position: <div id="cpos"></div></p>
-        <p>Camera Position: <div id="pos"></div></p>
-        <p>Spaceship Position: <div id="spos"></div></p>
+        <p>Circle Position: <b id="cpos"></b></p>
+        <p>Camera Position: <b id="pos"></b></p>
+        <p>Spaceship Position: <b id="spos"></b></p>
+        <p>Extra Info: <b id="extraInfo"></b></p>
     </body>
 </html>
