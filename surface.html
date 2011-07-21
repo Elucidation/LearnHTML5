@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learning HTML5</title>
+
+        <style>
+            body {
+                padding: 10px;
+                text-align: center;
+            }
+            canvas {
+                border: 1px solid;
+                position: relative;
+            }
+            table {
+                position: relative;
+                left: 30%;
+                text-align: left;
+                vertical-align: top;
+                border: 1px;
+                border-style: solid;
+                padding: 10px;
+            }
+            td {
+                padding: 5px;
+                vertical-align: top;
+            }
+        </style>
+        <script type="text/javascript"> <!--
+            var cxt;
+            var canvasThing; 
+            var circlePosField;
+            var intID;
+            
+            function init() {
+                // Canvas
+                canvasThing = document.getElementById("theCanvas");
+                cxt = canvasThing.getContext("2d");
+                // Statistics
+                circlePosField = document.getElementById("cpos");
+                circlePosField.innerHTML = "Nothing yet";
+                
+                intID = setInterval(update, 20);
+            }
+            
+            function clearUp() {
+                cxt.clearRect(0,0,canvasThing.width,canvasThing.height);
+            }
+            
+            
+            function drawPoint(x,y) {
+                cxt.strokeStyle = '#f00';
+                cxt.fillStyle = '#fff'
+                cxt.lineWidth = "1.5";
+                cxt.beginPath();
+                cxt.arc(x-1,y-1,2,0,Math.PI*2,true); // -1 for center for 2 radius circle, starts top-left
+                cxt.closePath();
+                cxt.stroke();
+                cxt.fill();
+            }
+            
+            
+            function mouseClick(e)
+            {
+                var mouseX, mouseY;
+
+                if(e.offsetX) {
+                    mouseX = e.offsetX;
+                    mouseY = e.offsetY;
+                }
+                else if(e.layerX) {
+                    mouseX = e.layerX;
+                    mouseY = e.layerY;
+                }
+                //drawPoint(mouseX,mouseY);
+                drawPoint(mouseX,mouseY);
+                
+                refresh();
+            }   
+            
+            function update() {
+                move();
+                refresh();
+            }
+            
+            function refresh() {
+            }            
+            --></script>
+    </head>
+    <body onload="init();">
+        <h1>So far so good.</h1>
+        <p>
+            <canvas id="theCanvas"
+                    width="600" 
+                    height="300" 
+                    onclick="mouseClick(event);">
+            </canvas>
+        </p>
+        <p>Circle Position: <div id="cpos"></div></p>
+    </body>
+</html>
