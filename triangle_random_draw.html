@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learning HTML5</title>
+        <style type="text/css">
+            body {
+                padding: 10px;
+                text-align: left;
+            }
+            canvas {
+                border: 1px solid;
+                position: relative;
+            }
+        </style>
+        <script src="v2d.js"></script> 
+        <script type="text/javascript"> <!--
+            var x,y;
+            var R, G, B;
+            var RED = "#f00";
+            var GREEN = "#0f0";
+            var BLUE = "#00f";
+            var counter=0;
+            var counterField;
+            function init() {
+                // Canvas
+                canvasThing = document.getElementById("theCanvas");
+                counterField = document.getElementById("numPoints");
+                cxt = canvasThing.getContext("2d");
+                WIDTH = canvasThing.width;
+                HEIGHT = canvasThing.height;
+                R = {x:WIDTH/2 - 490, y:HEIGHT/2 + 300};
+                G = {x:WIDTH/2, y:HEIGHT/2 - 380};
+                B = {x:WIDTH/2 + 490, y:HEIGHT/2 + 390};
+                
+                drawTriangle();
+                
+                var c = chooseRandom();
+                if (c == 0) {
+                  // RED
+                  cxt.fillStyle = RED
+                  x = R.x;
+                  y = R.y;
+                  
+                } else if (c == 1) {
+                  // GREEN
+                  cxt.fillStyle = GREEN
+                  x = G.x;
+                  y = G.y;
+                  
+                } else {
+                  // BLUE
+                  cxt.fillStyle = BLUE
+                  x = B.x;
+                  y = B.y;
+                }
+                drawPoint(x,y);
+                for (var i=0; i< 10000; i++) {
+                  chooseNewPoint();
+                }
+                update();
+            }
+            function clearScreen() {
+              // I have lots of transforms right now
+              cxt.save();
+              cxt.setTransform(1, 0, 0, 1, 0, 0);
+              // Will always clear the right space
+              cxt.clearRect(0,0,WIDTH,HEIGHT);
+              cxt.restore();
+              // Still have my old transforms
+            }
+            function update() {
+              //clearScreen();
+              counterField.innerHTML = counter;
+             
+            }
+            function chooseNewPoint() {
+              var c = chooseRandom();
+              var px, py;
+              if (c == 0) {
+                // RED
+                cxt.fillStyle = RED
+                px = R.x;
+                py = R.y;
+                
+              } else if (c == 1) {
+                // GREEN
+                cxt.fillStyle = GREEN
+                px = G.x;
+                py = G.y;
+                
+              } else {
+                // BLUE
+                cxt.fillStyle = BLUE
+                px = B.x;
+                py = B.y;
+              }
+              var nx,ny;
+              nx = (x + px)/2;
+              ny = (y + py)/2;
+              //drawLine(x,y,nx,ny);
+              drawPoint(nx,ny);
+              //console.debug("c: "+c+" | (" + x + ","+y+") ->  ("+nx+","+ny+")");
+              x = nx;
+              y = ny;
+              
+            }
+            
+            function drawTriangle() {
+               /// Triangle
+              cxt.strokeStyle = '#000';
+              cxt.lineWidth = "1";
+              
+              drawLine(B.x,B.y,R.x,R.y);
+              drawLine(R.x,R.y,G.x,G.y);
+              drawLine(G.x,G.y,B.x,B.y);
+              
+              cxt.fillStyle = RED
+              drawCircle(R.x,R.y,5);
+              
+              cxt.fillStyle = GREEN
+              drawCircle(G.x,G.y,5);
+
+              cxt.fillStyle = BLUE
+              drawCircle(B.x,B.y,5);
+            }
+            
+            function drawPoint(x,y) {
+              drawCircle(x,y,0.5);
+              counter += 1;
+            }
+            
+            function chooseRandom() {
+              var c = Math.random();
+              if (c < 0.33) {
+                return 0
+              } else if (c < 0.66) {
+                return 1;
+              } else {
+                return 2;
+              }
+            }
+            
+            function drawLine(x,y,x2,y2) {
+                cxt.beginPath()
+                cxt.moveTo(x,y);
+                cxt.lineTo(x2,y2);
+                cxt.stroke();
+            }
+            
+            function drawCircle(x,y,radius) {
+                cxt.beginPath();
+                cxt.arc(x,y,radius,0,Math.PI*2,true);
+                cxt.closePath();
+                //cxt.stroke();
+                cxt.fill();
+            }
+            function mouseClick(e) {
+                var mouseX, mouseY;
+
+                if(e.offsetX) {
+                    mouseX = e.offsetX;
+                    mouseY = e.offsetY;
+                }
+                else if(e.layerX) {
+                    mouseX = e.layerX;
+                    mouseY = e.layerY;
+                }
+                for (var i=0; i< 5000; i++) {
+                  chooseNewPoint();
+                }
+                update();
+            }
+            --></script>
+    </head>
+    <body onload="init();">
+        <h5>Based on <a href="http://www.cs.princeton.edu/courses/archive/fall03/cs126/lectures/04.pdf">http://www.cs.princeton.edu/courses/archive/fall03/cs126/lectures/04.pdf</a> Slide 12, the Chaos game, or better known as the <a href="http://en.wikipedia.org/wiki/Sierpinski_triangle">Sierpinksi Triangle</a></h5>
+        <p>Click to add another 5000 points.</p>
+        <p>
+            <canvas id="theCanvas"
+                    width="1000" 
+                    height="800" 
+                    onclick="mouseClick(event);">
+                    Your browser does not support HTML5 Canvas unfortunately.
+            </canvas>
+            <p>Number of points: <b id='numPoints'></b></p>
+        </p>
+    </body>
+</html>

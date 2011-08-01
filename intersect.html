@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learning HTML5</title>
+        <style type="text/css">
+            body {
+                padding: 10px;
+                text-align: left;
+            }
+            canvas {
+                border: 1px solid;
+                position: relative;
+            }
+        </style>
+        <script src="v2d.js"></script> 
+        <script type="text/javascript"> <!--
+            var x1 = 380,y1 = 120;
+            var x2 = 280,y2 = 220;
+            var cx=250,cy=200;
+            var r = 100;
+            function init() {
+                // Canvas
+                canvasThing = document.getElementById("theCanvas");
+                cxt = canvasThing.getContext("2d");
+                WIDTH = canvasThing.width;
+                HEIGHT = canvasThing.height;
+                
+                update();
+            }
+            function clearScreen() {
+              // I have lots of transforms right now
+              cxt.save();
+              cxt.setTransform(1, 0, 0, 1, 0, 0);
+              // Will always clear the right space
+              cxt.clearRect(0,0,WIDTH,HEIGHT);
+              cxt.restore();
+              // Still have my old transforms
+            }
+            function update() {
+                clearScreen();
+            
+                /// CIRCLE
+                cxt.strokeStyle = '#00f';
+                cxt.fillStyle = '#aaf'
+                cxt.lineWidth = "1";
+                drawCircle(cx,cy,r);
+                
+                // LINE
+                cxt.strokeStyle = "#736";
+                cxt.lineWidth = "2";
+                drawLine(x1,y1,x2,y2);
+                
+                var p = (function(t) {return {x:(x1+(x2-x1)*t),y:(y1+(y2-y1)*t)}});
+                
+                // Intersection calculations
+                var xp = x1-cx, yp = y1-cy;
+                var dx = x2-x1, dy = y2-y1;
+                var a = dx*dx+dy*dy;
+                var b = 2*xp*dx+2*yp*dy;
+                var c = xp*xp+yp*yp-r*r;
+                
+                var g = quadSolve(a,b,c);
+                var z = p( g[0] );
+                var z2 = p( g[1] );
+                
+                
+                cxt.strokeStyle = '#000';
+                cxt.fillStyle = '#f00'
+                cxt.lineWidth = "1";
+                drawPoint(z.x,z.y);
+                cxt.strokeStyle = '#000';
+                cxt.fillStyle = '#00f'
+                cxt.lineWidth = "1";
+                drawPoint(z2.x,z2.y);
+            }
+            
+            function drawPoint(x,y) {
+                drawCircle(x,y,2);
+            }
+            
+            function quadSolve(a,b,c) {
+                var i1 = (-b + Math.sqrt(b*b-4*a*c))/(2*a);
+                var i2 = (-b - Math.sqrt(b*b-4*a*c))/(2*a);
+                return [i1,i2];
+            }
+            
+            function drawLine(x,y,x2,y2) {
+                cxt.beginPath()
+                cxt.moveTo(x,y);
+                cxt.lineTo(x2,y2);
+                cxt.stroke();
+            }
+            
+            function drawCircle(x,y,radius) {
+                cxt.beginPath();
+                cxt.arc(x,y,radius,0,Math.PI*2,true);
+                cxt.closePath();
+                cxt.stroke();
+                cxt.fill();
+            }
+            function dist(x,y,x2,y2) {
+                return Math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y));
+            }
+            function mouseClick(e) {
+                var mouseX, mouseY;
+
+                if(e.offsetX) {
+                    mouseX = e.offsetX;
+                    mouseY = e.offsetY;
+                }
+                else if(e.layerX) {
+                    mouseX = e.layerX;
+                    mouseY = e.layerY;
+                }
+                var d1 = dist(mouseX,mouseY,x1,y1);
+                var d2 = dist(mouseX,mouseY,x2,y2);
+                var d3 = dist(mouseX,mouseY,cx,cy);
+                if (d1 < d2 && d1 < d3) {
+                    x1 = mouseX;
+                    y1 = mouseY;
+                } else if (d2 < d1 && d2 < d3){
+                    x2 = mouseX;
+                    y2 = mouseY;
+                } else {
+                    cx = mouseX;
+                    cy = mouseY;
+                }
+                
+                update();
+            }
+            --></script>
+    </head>
+    <body onload="init();">
+        <h1>So far so good.</h1>
+        <p>
+            <canvas id="theCanvas"
+                    width="600" 
+                    height="300" 
+                    onclick="mouseClick(event);">
+                    Your browser does not support HTML5 Canvas unfortunately.
+            </canvas>
+        </p>
+    </body>
+</html>
